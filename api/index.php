@@ -89,11 +89,50 @@
         }
 
         private function test(){
-            $data = [
-                    "status" => "working"
-                ];
-                $data = $this->json($data);
+                $data = $this->json(getallheaders());
                 $this->response($data,101);
+        }
+
+        private function get_current_user(){
+            $username = $this->is_logged_in();
+            if($username){
+                $data = [
+                    "username"=> $username
+                ];
+                $this->response($this->json($data), 200);
+            } else {
+                $data = [
+                    "error"=> "unauthorized"
+                ];
+                $this->response($this->json($data), 403);
+            }
+        }
+
+        private function logout(){
+            $username = $this->is_logged_in();
+            if($username){
+                $headers = getallheaders();
+                $auth_token = $headers["Authorization"];
+                $auth_token = explode(" ", $auth_token)[1];
+                $query = "DELETE FROM session WHERE session_token='$auth_token'";
+                $db = $this->dbConnect();
+                if(mysqli_query($db, $query)){
+                    $data = [
+                        "message"=> "success"
+                    ];
+                    $this->response($this->json($data), 200);
+                } else {
+                    $data = [
+                        "user"=> $this->is_logged_in()
+                    ];
+                    $this->response($this->json($data), 200);
+                }
+            } else {
+                $data = [
+                    "user"=> $this->is_logged_in()
+                ];
+                $this->response($this->json($data), 200);
+            }
         }
 
         private function user_exists(){
@@ -151,6 +190,84 @@
                     "error"=>"expectation_failed"
                 ];
                 $this->response($this->json($data), 417);
+            }
+        }
+
+        private function login(){
+            if($this->get_request_method() != "POST"){
+                $data = [
+                    "error"=>"method_not_allowed"
+                ];
+                $this->response($this->json($data), 405);
+            }
+
+            if(isset($this->_request['username']) and isset($this->_request['password'])){
+                $db = $this->dbConnect();
+                $username = $this->_request['username'];
+                $password = $this->_request['password'];
+                $result = mysqli_query($db, "SELECT * FROM users WHERE (id='$username' OR username='$username' OR mobile='$username') AND password = '$password'");
+                $d = mysqli_fetch_assoc($result);
+                if($d){
+                    $userid = $d['id'];
+                    $token = $this->generate_hash();
+                    $query = "INSERT INTO `session` (session_token, is_valid, user_id) VALUES ('$token', '1', '$userid');";
+                    if(mysqli_query($db, $query)){
+                        $data = [
+                            "message"=>"success",
+                            "token"=>$token
+                        ];
+                        $this->response($this->json($data), 201);
+                    } else {
+                        $data = [
+                            "error"=>"internal_server_error",
+                            "message"=>mysqli_error($db)
+                        ];
+                        $this->response($this->json($data), 500);
+                    }
+                } else {
+                    $data = [
+                        "error"=>"invalid_credentials"
+                    ];
+                    $this->response($this->json($data), 404);
+                }
+            } else {
+                $data = [
+                    "error"=>"expectation_failed"
+                ];
+                $this->response($this->json($data), 417);
+            }
+        }
+
+        function generate_hash(){
+            $bytes = random_bytes(16);
+            return bin2hex($bytes);
+        }
+
+        function is_logged_in(){
+            $headers = getallheaders();
+            if(isset($headers["Authorization"])){
+                $auth_token = $headers["Authorization"];
+                $auth_token = explode(" ", $auth_token)[1];
+
+                $query = "SELECT * FROM session WHERE session_token='$auth_token'";
+                $db = $this->dbConnect();
+                $_result = mysqli_query($db, $query);
+                $d = mysqli_fetch_assoc($_result);
+                if($d){
+                    $data = $d['user_id'];
+                    $result = mysqli_query($db, "SELECT id, username, mobile FROM users WHERE id='$data' OR username='$data' OR mobile='$data'");
+                    if($result){
+                        $result = mysqli_fetch_array($result, MYSQLI_ASSOC);
+                        return $result["username"];
+                    } else {
+                        return false;
+                    }
+
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
             }
         }
 
