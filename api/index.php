@@ -62,6 +62,32 @@
 
         }
 
+        private function verify(){
+            $user = $this->_request['user'];
+            $password =  $this->_request['pass'];
+
+            $flag = 0;
+            if($user == "admin"){
+                if($password == "adminpass123"){
+                    $flag = 1;
+                }
+            }
+
+            if($flag == 1){
+                $data = [
+                    "status" => "verified"
+                ];
+                $data = $this->json($data);
+                $this->response($data,200);
+            } else {
+                $data = [
+                    "status" => "unauthorized"
+                ];
+                $data = $this->json($data);
+                $this->response($data,403);
+            }
+        }
+
 
 
         /*************API SPACE END*********************/
