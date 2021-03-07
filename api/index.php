@@ -115,7 +115,42 @@
                 $data = [
                     "error"=>"expectation_failed"
                 ];
-                $this->response($this->json($result), 417);
+                $this->response($this->json($data), 417);
+            }
+        }
+
+        private function signup(){
+            if($this->get_request_method() != "POST"){
+                $data = [
+                    "error"=>"method_not_allowed"
+                ];
+                $this->response($this->json($data), 405);
+            }
+            if(isset($this->_request['username']) and isset($this->_request['password']) and isset($this->_request['mobile'])){
+                $username = $this->_request['username'];
+                $password = $this->_request['password'];
+                $mobile = $this->_request['mobile'];
+
+                $query = "INSERT INTO users (username, password, mobile) VALUES ('$username', '$password', '$mobile');";
+
+                $db = $this->dbConnect();
+                $result = mysqli_query($db, $query);
+                if($result){
+                    $data = [
+                        "message"=>"success"
+                    ];
+                    $this->response($this->json($data), 201);
+                } else {
+                    $data = [
+                        "error"=>"internal_server_error"
+                    ];
+                    $this->response($this->json($data), 500);
+                }
+            } else {
+                $data = [
+                    "error"=>"expectation_failed"
+                ];
+                $this->response($this->json($data), 417);
             }
         }
 
