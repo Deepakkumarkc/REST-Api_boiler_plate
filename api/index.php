@@ -88,6 +88,37 @@
             }
         }
 
+        private function test(){
+            $data = [
+                    "status" => "working"
+                ];
+                $data = $this->json($data);
+                $this->response($data,101);
+        }
+
+        private function user_exists(){
+            if(isset($this->_request['data'])){
+                $data = $this->_request['data'];
+                $db = $this->dbConnect();
+                $result = mysqli_query($db, "SELECT id, username, mobile FROM users WHERE id='$data' OR username='$data' OR mobile='$data'");
+                if($result){
+                    $result = mysqli_fetch_array($result, MYSQLI_ASSOC);
+                    $this->response($this->json($result), 200);
+                } else {
+                    $data = [
+                        "error"=>"user_not_found"
+                    ];
+                    $this->response($this->json($data), 404);
+                }
+
+            } else {
+                $data = [
+                    "error"=>"expectation_failed"
+                ];
+                $this->response($this->json($result), 417);
+            }
+        }
+
 
 
         /*************API SPACE END*********************/
@@ -98,6 +129,8 @@
         private function json($data){
             if(is_array($data)){
                 return json_encode($data, JSON_PRETTY_PRINT);
+            } else {
+                return "{}";
             }
         }
 
