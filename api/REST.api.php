@@ -8,14 +8,20 @@
         private $_method = "";
         private $_code = 200;
 
+        /* 
+           This constructor call the inputs function
+        */
         public function __construct(){
-            $this->inputs();
+            $this->inputs();  
         }
 
         public function get_referer(){
-            return $_SERVER['HTTP_REFERER'];
+            return $_SERVER['HTTP_REFERER']; 
         }
-
+        
+        /*
+           This function display the data and set the headers
+        */
         public function response($data,$status){
             $this->_code = ($status)?$status:200;
             $this->set_headers();
@@ -68,11 +74,17 @@
                         505 => 'HTTP Version Not Supported');
             return ($status[$this->_code])?$status[$this->_code]:$status[500];
         }
-
+        
+        /* 
+           Return the type of reqest method GET or POST
+        */
         public function get_request_method(){
             return $_SERVER['REQUEST_METHOD'];
         }
 
+        /*
+           This function check the input methods and pass the input data to cleanInputs
+        */
         private function inputs(){
             switch($this->get_request_method()){
                 case "POST":
@@ -93,6 +105,9 @@
             }
         }
 
+        /*
+           This function used to clean the inputs that means prevent from SQL injection and Cross site scripting.
+        */
         private function cleanInputs($data){
             $clean_input = array();
             if(is_array($data)){
@@ -107,6 +122,9 @@
             return $clean_input;
         }
 
+        /*
+           This function set the headers.
+        */
         private function set_headers(){
             header("HTTP/1.1 ".$this->_code." ".$this->get_status_message());
             header("Content-Type:".$this->_content_type);

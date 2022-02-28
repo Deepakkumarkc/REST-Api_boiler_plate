@@ -62,6 +62,9 @@
 
         }
 
+        /*
+           Temporary verification 
+        */
         private function verify(){
             $user = $this->_request['user'];
             $password =  $this->_request['pass'];
@@ -88,6 +91,9 @@
             }
         }
 
+        /*
+           Test function
+        */
         private function test(){
                 $data = $this->json(getallheaders());
                 $this->response($data,101);
@@ -280,7 +286,11 @@
         */
         private function json($data){
             if(is_array($data)){
-                return json_encode($data, JSON_PRETTY_PRINT);
+                return json_encode($data, JSON_PRETTY_PRINT); 
+                /*
+                json_encode - print the data this to ('a' => 1, 'b' => 2, 'c' => 3, 'd' => 4, 'e' => 5)  to {"a":1,"b":2,"c":3,"d":4,"e":5}
+                JSON_PRETTY_PRINT - used to print the data one by one and neatly 
+                */
             } else {
                 return "{}";
             }
